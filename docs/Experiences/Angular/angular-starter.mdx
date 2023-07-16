@@ -1,0 +1,349 @@
+---
+id: angular-starter
+title: angular
+---
+
+## Installation
+
+1. install globally
+
+```shell
+pnpm add @angular/cli -g
+```
+
+2. install new project
+
+```shell
+ng new my-project --prefix pm
+```
+
+- `--prefix` is an optional property to add a prefix to all the selector directives in our components. In this case we changed the `app` prefix to `pm`(<pm-root></pm-root>)
+
+3. answer the questions based on your needs
+4. go the project folder, in this case `cd my-project`
+5. start the app
+
+```shell
+npm start
+```
+
+## keywords
+
+### Decorator
+
+Decorators are functions and by using them we can add metadata or directives and we use them to add something to our class, like `@Component()`,
+so in this case we can tell Angular how it should run our component
+
+```ts
+@Component({
+  selector: `pm-root`,
+  template: `
+    <div>
+      <h1>{{ pageTitle }}</h1>
+      <div>First Component</div>
+    </div>
+  `,
+})
+export class AppComponent {
+  pageTitle: string = "Hello World!";
+}
+```
+
+### Directives
+
+In fact, directives are HTML-like tags and we use them to create something custom or we can use the built-in directives like: `*ngIf`, `*ngFor`
+
+### Interpolation
+
+Is a way to execute js code inside HTML code and it's one way binding from component class property to an element property
+
+### Property Binding & Template Expression
+
+To bind a value (template expression is a property in our class and we can bind it to properties with quotes) to an element
+property with putting the property name inside a bracket `[]`:
+
+```angular
+<img [src]="product.imageUrl" />
+<img src="{{ product.imageUrl }}" />
+<input type="text" [disabled]="isDisabled" />
+<img src="http://myImages.org/{{ product.imageUrl }}" />
+```
+
+🚩 Generally **Interpolation** is used for return a value to HTML code and **Property Binding** is used for bind any type of value, like boolean, number, etc.
+
+[Property Binding](https://angular.io/guide/property-binding)
+
+[Property Binding Best Practice](https://angular.io/guide/property-binding-best-practices)
+
+### Event Binding
+
+It is used to bind an event from HTML to a method from the class and the event should put in the prentices `()`:
+
+```ts
+<button (click)="toggleImage()">Show Image</button>
+```
+
+🚩 methods should have () too.
+
+[Event Binding](https://angular.io/guide/event-binding)
+
+### Two way data binding
+
+Generally, to use 2-way data binding we need something like `input`s, so first we need **Property Binding** to bind a value
+from the class to the input and when user types, we want to fill that property with new value, so we need to call an event.
+In that case, we should use **Event Binding**. In fact we should use `[()]` this form for 2-way data binding:
+
+```ts
+<input type="text" [(ngModel)]="listFilter"/>
+```
+
+[2-Way Data Binding](https://angular.io/guide/two-way-binding)
+
+![Data Binding](/img/data_binding.jpg)
+
+### Pipes
+
+Angular has own `Data Transform` for data transformation built-in functions for `Date`, `Number`, `Decimal`, `Percent`, `Currency`, `JSON`, etc.
+
+🚩 Generally, pipes are used for transforming data.
+
+```ts
+{{product.productCode | lowercase}}
+<img [src]="product.imageUrl" [title]="product.productName | uppercase"/>
+{{product.price | currency | lowercase}}
+{{product.price | currency: "USD": "symbol": "1.2-2"}} // at least 1 number to the left of the decimal and 2 and only 2 numbers to the right of the decimal
+```
+
+So, we can use multiple pipes. Also there are some pipes with parameters: [Pipes](https://angular.io/api?type=pipe)
+
+### get & set
+
+In Angular by using `Getter` and `Setter` we can get the value or set a new value to a **private** property (the convention is to use `_` for private properties):
+
+🚩 In fact, by using `Getter` and `Setter` we are trying to make our variable immutable.
+
+```ts
+private _amount: number = 0;
+
+get amount(): number {
+    return this._amount;
+};
+set amount(value: number) {
+    this._amount = value;
+}
+```
+
+🚩 Private property means, we want to use this variable inside the class and for outsiders we should use `Getter` and `Setter`.
+
+### @Input()
+
+It is a decorator to handle passed data from **`Parent`** component to the **`Child`** component using `Property Binding`:
+
+```ts title="./src/app/star.component.ts"
+export class StarComponent implements OnChanges {
+  @Input() rating: number = 0;
+  cropWidth: number = 75;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.cropWidth = (this.rating * 75) / 5;
+  }
+}
+```
+
+```ts title="./src/app/product-list.component.html"
+    <td>
+        <pm-star [rating]="product.starRating"></pm-star>
+    </td>
+```
+
+[Inputs & Outputs](https://angular.io/guide/inputs-outputs)
+
+### @Output()
+
+By using this decorator, we can pass an event from **`Child`** to the **`Parent`** component by using `Event Binding`:
+
+1. Create an event in the **`Child`** component with desired argument data type:
+
+```ts
+export class StarComponent implements OnChanges {
+  // ...
+  @Output() ratingClicked: EventEmitter<string> = new EventEmitter<string>();
+  // ...
+}
+```
+
+2. Using the event in a method to call it in the **`Child`** component HTML file:
+
+```ts title="star.component.ts"
+export class StarComponent implements OnChanges {
+  // ...
+  onClick(): void {
+    this.ratingClicked.emit(`The rating ${this.rating} was clicked!`);
+  }
+  // ...
+}
+```
+
+3. Bind the event in the **`Child`** component to the element:
+
+```html title="star.component.html"
+<div (click)="onClick()">
+  <!-- ... -->
+</div>
+```
+
+4. Bind the new event (the name which we give the `@Output` in the child component) to the **`Parent`** component HTML file:
+
+```html title="product-list.component.html"
+<td>
+  <pm-star
+    [rating]="product.starRating"
+    (ratingClicked)="onRatingClicked($event)"
+  ></pm-star>
+</td>
+```
+
+- The `onRatingClicked()` method should created in the **`Parent`** component.
+- `$event` includes all the data that we passed with `this.ratingClicked.emit()` in the **`Child`** component.
+
+5. Now we need to create the `onRatingClicked()` method in the **`Parent`** component.
+
+```ts title="product-list.component.ts"
+export class ProductListComponent implements OnInit {
+  // ...
+  onRatingClicked(message: string): void {
+    this.pageTitle = `Product List: The message is: ${message}`;
+  }
+  // ...
+}
+```
+
+[Inputs & Outputs](https://angular.io/guide/inputs-outputs)
+
+### Dependency Injection
+
+Sometimes we need to create a function or a piece of codes that is independent from the others and we can call it in any component.
+
+#### Services
+
+Service is a type of class that is independent.
+
+- So we can create a service and Angular will make it `Singleton` (single instance of our service) and
+  the `Injector` (is a tool to inject our services as a dependency to our classes) will inject our services in the class.
+- Generally, we can inject our services in one component and its children or inject to the root and accessible through out the application:
+
+1. Accessible for the components
+
+```ts title="product.service.ts"
+@Injectable({
+  providedIn: "root",
+})
+export class ProductService {
+  getProducts(): IProduct[] {
+    // ...
+  }
+}
+```
+
+2. Accessible for a specific component and its children
+
+```ts title="product-list.component.ts"
+@Component({
+  /* . . . */
+  providers: [ProductService]
+})
+```
+
+[Providers](https://angular.io/guide/providers)
+
+[Dependency Injection](https://angular.io/guide/dependency-injection)
+
+3. Now we can inject and use our service as a dependency injection in the components:
+
+```ts title="product-list.component.ts"
+export class ProductListComponent implements OnInit {
+  // ...
+  constructor(private productService: ProductService) {}
+
+  ngOnInit(): void {
+    this.products = this.productService.getProducts();
+    this.filteredProducts = this.products;
+  }
+  // ...
+}
+```
+
+### Observable
+
+
+[Observable](https://angular.io/guide/observables)
+
+### Lifecycle Hooks
+
+[Lifecycle Hooks](https://angular.io/guide/lifecycle-hooks)
+
+#### OnInit
+
+We can initialize our component or retrieve data from backend in this lifecycle
+
+#### onChanges
+
+We can do something after change to input properties
+
+#### onDestroy
+
+We can prevent, or show a prompt to the user before leave the component or cleanup before destroy the component
+
+- Generally, to use the `Lifecycle`s, we need to implement them in our `class`:
+
+```ts
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  // ...
+})
+export class ProductListComponent implements OnInit {
+  //...
+  ngOnInit(): void {
+    console.log("On Init");
+  }
+}
+```
+
+### Custom Pipe
+
+To create a `Custom Pipe` we need to create a `class` and use `@Pipe` decorator:
+
+```ts title="src/app/pipes/convert-to-spaces.pipe.ts"
+import { Pipe, PipeTransform } from "@angular/core";
+
+@Pipe({
+  name: "convertToSpaces",
+})
+export class ConvertToSpacesPipe implements PipeTransform {
+  /**
+   * Convert any specified character to space
+   * @param {string} value - Interpolation property
+   * @param {string} character - The character that we want to be replaced
+   */
+  transform(value: string, character: string): string {
+    return value.replace(character, " ");
+  }
+}
+```
+
+```html title="src/app/products/product-list.component.html"
+    <td>{{product.productCode | lowercase | convertToSpaces:"-"}}</td>
+```
+
+🚩 After creating our custom pipe, we need to add it to `declarations` in the `app.module.ts`
+
+## Tips
+
+- Every component should add to `@NgModule()` in the `app.module.ts`
+- Don't use `constructor` with codes which it has side-effects, like requests. Just use for initialization
+
+### Errors
+
+To check the errors in our app we can check this link
+[Angular Errors](https://angular.io/errors)
