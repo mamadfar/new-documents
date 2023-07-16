@@ -273,10 +273,106 @@ export class ProductListComponent implements OnInit {
 }
 ```
 
-### Observable
+### RxJs & Observable
 
+`RxJs` (**Reactive Extensions**) is a library for mixin or composing data using observable sequences.
+
+- Generally, `Observable` is just like `Promise()`, so we need to make our action `Observable`, otherwise, we can't `Subscribe`.
+- `Observable` doesn't do anything until we `Subscribe` to something.
+- After subscribe, we have 3 stages (In case of pressing keys by user):
+  1. `Next`: We'll notify by each key on pressing.
+  2. `Error`: If there is an error, we'll get it in this stage.
+  3. `Complete`: After finishing the action, we'll notify by this stage.
+- It has over 100 pipe that we can use when we are subscribing to something, e.g. `lowercase`, `uppercase`, etc.
+- To cleanup the `subscription`, after the action, we need to `unsubscribe` the action.
+- The convention for observable variable is to use `$` after the name of the variable.
+- `<observable variable>.pipe(<pipe functions separated by (,)>).subscribe(<callback func>)`
+
+```ts
+import { Observable, range, map, filter } from "rxjs";
+
+const source$: Observable<number> = range(0, 10);
+
+source$
+  .pipe(
+    map((x) => x * 3),
+    filter((x) => x % 2 === 0)
+  )
+  .subscribe((x) => console.log(x));
+```
+
+#### http
+Usually, we use `Observable` to make a request to another source, to do so, we need to add `HttpClientModule` to the `app.modules.ts` 
+and inject `HttpClient` to our services:
+```ts title="services/products.service.ts"
+import {Observable, catchError, tap, throwError} from "rxjs";
+
+export class ProductService {
+
+  private productUrl = "api/products/products.json";
+
+  constructor(private http: HttpClient){}
+
+  //? Get Products
+  getProducts(): Observable<IProduct[]> {
+    return this.http.get<IProduct[]>(this.productUrl).pipe(
+      tap(data => console.log(`All: ${JSON.stringify(data)}`)),
+      catchError(this.handleError)
+    );
+  }
+  //? Error handling
+  private handleError(err: HttpErrorResponse){
+    let errMsg = "";
+
+    if(err.error instanceof ErrorEvent) errMsg = `An error occurred: ${err.error.message}`;
+    else errMsg = `Server returned code: ${err.status}, error message is: ${err.error.message}`;
+
+    console.log(errMsg);
+    return throwError(() => errMsg)
+  }
+}
+```
+`tap`: Is a pipe for showing not-streamed data. We can use it for logging or debugging. [tap](https://rxjs.dev/api/index/function/tap)
+`catchError`: Is a pipe for catching errors, generally we need to return an error object observable with `throwError`. [catchError](https://rxjs.dev/api/index/function/catchError) --- [throwError](https://rxjs.dev/api/index/function/throwError)
+
+Now we can `subscribe` our service to get the data:
+```ts title="product-list.component.ts"
+export class ProductListComponent implements OnInit, OnDestroy {
+  //...
+  errorMessage: string = "";
+  sub?: Subscription;
+  products: IProduct[] = [];
+  filteredProducts: IProduct[] = [];
+  //...
+
+  ngOnInit(): void {
+    this.sub = this.productService.getProducts().subscribe({
+      next: products => {
+        this.products = products;
+        this.filteredProducts = this.products;
+      },
+      error: err => this.errorMessage = err,
+      complete: () => console.log("Request has been done!")
+    });
+  };
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+  //...
+}
+```
+- Since this a http request, so the `next` function will execute once.
+- Each service will return a subscription and we can use it for `unsubscribe` the request on unmount lifecycle.
 
 [Observable](https://angular.io/guide/observables)
+
+[RxJs](https://angular.io/guide/rx-library)
+
+[RxJs - Operators](https://rxjs.dev/guide/operators#categories-of-operators)
+
+[http](https://angular.io/api/common/http/HttpClient)
+
+[subscription](https://rxjs.dev/guide/subscription)
 
 ### Lifecycle Hooks
 
@@ -333,7 +429,7 @@ export class ConvertToSpacesPipe implements PipeTransform {
 ```
 
 ```html title="src/app/products/product-list.component.html"
-    <td>{{product.productCode | lowercase | convertToSpaces:"-"}}</td>
+<td>{{product.productCode | lowercase | convertToSpaces:"-"}}</td>
 ```
 
 🚩 After creating our custom pipe, we need to add it to `declarations` in the `app.module.ts`
@@ -342,6 +438,15 @@ export class ConvertToSpacesPipe implements PipeTransform {
 
 - Every component should add to `@NgModule()` in the `app.module.ts`
 - Don't use `constructor` with codes which it has side-effects, like requests. Just use for initialization
+- `Synchronous` is just like a **phone call**, it is a real-time action, you talk, immediately I respond.
+- `Asynchronous` is like **email**, I send an email to you and don't wait for your respond and do another task.
+- In `angular.json` file, we can modify the configuration like adding library's CSS or Js file or for example,
+we can change the assets directory:
+```json
+{
+  "assets": ["src/favicon.ico", "src/assets", "src/api"]
+}
+```
 
 ### Errors
 
