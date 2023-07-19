@@ -27,6 +27,33 @@ ng new my-project --prefix pm
 npm start
 ```
 
+### Commands
+
+Here is some useful commands:
+
+#### component
+
+```shell
+ng g c [path/component name]
+```
+
+- We can use `--flat` to create a component without folder.
+- We can use `--skip-tests` to prevent generating testing file
+
+#### Service
+
+```shell
+ng g s [path/service name]
+```
+
+#### add a module
+
+We can use `add` to add an external library or module:
+
+```shell
+ng add [module name]
+```
+
 ## keywords
 
 ### Decorator
@@ -302,40 +329,45 @@ source$
 ```
 
 #### http
-Usually, we use `Observable` to make a request to another source, to do so, we need to add `HttpClientModule` to the `app.modules.ts` 
+
+Usually, we use `Observable` to make a request to another source, to do so, we need to add `HttpClientModule` to the `app.modules.ts`
 and inject `HttpClient` to our services:
+
 ```ts title="services/products.service.ts"
-import {Observable, catchError, tap, throwError} from "rxjs";
+import { Observable, catchError, tap, throwError } from "rxjs";
 
 export class ProductService {
-
   private productUrl = "api/products/products.json";
 
-  constructor(private http: HttpClient){}
+  constructor(private http: HttpClient) {}
 
   //? Get Products
   getProducts(): Observable<IProduct[]> {
     return this.http.get<IProduct[]>(this.productUrl).pipe(
-      tap(data => console.log(`All: ${JSON.stringify(data)}`)),
+      tap((data) => console.log(`All: ${JSON.stringify(data)}`)),
       catchError(this.handleError)
     );
   }
   //? Error handling
-  private handleError(err: HttpErrorResponse){
+  private handleError(err: HttpErrorResponse) {
     let errMsg = "";
 
-    if(err.error instanceof ErrorEvent) errMsg = `An error occurred: ${err.error.message}`;
-    else errMsg = `Server returned code: ${err.status}, error message is: ${err.error.message}`;
+    if (err.error instanceof ErrorEvent)
+      errMsg = `An error occurred: ${err.error.message}`;
+    else
+      errMsg = `Server returned code: ${err.status}, error message is: ${err.error.message}`;
 
     console.log(errMsg);
-    return throwError(() => errMsg)
+    return throwError(() => errMsg);
   }
 }
 ```
+
 `tap`: Is a pipe for showing not-streamed data. We can use it for logging or debugging. [tap](https://rxjs.dev/api/index/function/tap)
 `catchError`: Is a pipe for catching errors, generally we need to return an error object observable with `throwError`. [catchError](https://rxjs.dev/api/index/function/catchError) --- [throwError](https://rxjs.dev/api/index/function/throwError)
 
 Now we can `subscribe` our service to get the data:
+
 ```ts title="product-list.component.ts"
 export class ProductListComponent implements OnInit, OnDestroy {
   //...
@@ -347,20 +379,21 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sub = this.productService.getProducts().subscribe({
-      next: products => {
+      next: (products) => {
         this.products = products;
         this.filteredProducts = this.products;
       },
-      error: err => this.errorMessage = err,
-      complete: () => console.log("Request has been done!")
+      error: (err) => (this.errorMessage = err),
+      complete: () => console.log("Request has been done!"),
     });
-  };
+  }
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
   }
   //...
 }
 ```
+
 - Since this a http request, so the `next` function will execute once.
 - Each service will return a subscription and we can use it for `unsubscribe` the request on unmount lifecycle.
 
@@ -434,6 +467,75 @@ export class ConvertToSpacesPipe implements PipeTransform {
 
 🚩 After creating our custom pipe, we need to add it to `declarations` in the `app.module.ts`
 
+### Router
+
+1. To use the router, we should add it to our `app.module.ts`:
+
+```ts
+@NgModule({
+  declarations: [/*...*/],
+  imports: [
+    //...
+    RouterModule.forRoot([
+      {path: "products", component: ProductListComponent},
+      {path: "products/:id", component: ProductDetailComponent}, // Route with path params
+      {path: "welcome", component: WelcomeComponent},
+      {path: "", redirectTo: "welcome", pathMatch: "full"}, // Exact math
+      {path: "**", component: ProductListComponent},
+    ])
+  ],
+  bootstrap: [AppComponent]
+})
+```
+
+- Better to use a separate file for routing
+- Better to right the more specific route at the beginning and less specific at the end. The order is matter!
+- Better to remove the `selector` from those pages which we want to navigate to them with router.
+
+2. Now we can pass `routerLink` as a directive to any HTML element and make it clickable:
+
+```html title="components/layout/navbar.component.html"
+<ul class="nav nav-pills">
+  <li><a class="nav-link" routerLink="/welcome">Home</a></li>
+  <li><a class="nav-link" routerLink="/products">Product List</a></li>
+</ul>
+```
+
+3. If we want to pass a `path param` or a `query param`, we need to pass an array to `routerLink`:
+
+```html title="pages/product-list.component.html"
+<td>
+  <a [routerLink]="['/products', product.productId]">{{product.productName}}</a>
+</td>
+```
+4. Now by using `ActivatedRoute` dependency injection, we can get the `params`:
+```ts title="pages/products/product-detail.component.ts"
+constructor(private route: ActivatedRoute) { }
+```
+
+5. Now for getting the params, we can use 2 different approach based on our needs:
+    1. `Snapshot`: Read the parameter one time:
+    ```ts
+      this.route.snapshot.paramMap.get("id")
+    ```
+    2. `Observable`: Read the emitted parameters as they change:
+    ```ts
+      this.route.paramMap.subscribe(
+        params => console.log(params.get("id"))
+      )
+    ```
+    - the "id" must be matched to the `path: products/:id`
+
+6. Now we need to show the selected route in the view by using `router-outlet`:
+
+```ts title="app.component.html"
+<div class="container">
+  <router-outlet></router-outlet>
+</div>
+```
+
+- The `base` tag in the `index.html` is very important for the routing.
+
 ## Tips
 
 - Every component should add to `@NgModule()` in the `app.module.ts`
@@ -441,7 +543,8 @@ export class ConvertToSpacesPipe implements PipeTransform {
 - `Synchronous` is just like a **phone call**, it is a real-time action, you talk, immediately I respond.
 - `Asynchronous` is like **email**, I send an email to you and don't wait for your respond and do another task.
 - In `angular.json` file, we can modify the configuration like adding library's CSS or Js file or for example,
-we can change the assets directory:
+  we can change the assets directory:
+
 ```json
 {
   "assets": ["src/favicon.ico", "src/assets", "src/api"]
