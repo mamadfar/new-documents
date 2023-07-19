@@ -1,0 +1,65 @@
+Generally, we use `Cypress` or `Selenium` for E2E (End To End) testing.
+
+- Usually, we use `data-test` ([HTML dataset](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset)) to access to the element:
+- We should have a `cypress` folder in the root and inside a `e2e` folder, we can create our test file.
+
+## Commands
+
+### visit()
+
+To check a URL (we should determine the Base URL in the `cypress.config.js` first) we use `visit`:
+
+[visit](https://docs.cypress.io/api/commands/visit)
+
+### get()
+
+To grab an element with a selector.
+
+[get](https://docs.cypress.io/api/commands/get)
+
+### should()
+
+It's a method to make an assertion.
+
+[should](https://docs.cypress.io/api/commands/should)
+
+```ts
+context("Ratings", () => {
+  describe("Search Page", () => {
+    beforeEach(() => {
+      cy.visit("/search?fullText=blue-car");
+    });
+    describe("Rating star", () => {
+      it("should show the star and rating on the product card", function () {
+        cy.get("[data-test=rating-star-container]").should("be.visible");
+      });
+      it("should number of rating greater than/equal 5", function () {
+        cy.get("[data-test=number-of-rating]")
+          .invoke("text")
+          .then(parseFloat)
+          .should("be.gte", 5);
+      });
+    });
+  });
+});
+```
+
+### assertions
+
+We should use the [Assertions](https://docs.cypress.io/guides/references/assertions) in the `should()` method to check our elements.
+
+#### gte
+
+Means `greater than or equal` or `at least`
+
+### How to
+[How To](https://docs.cypress.io/faq/questions/using-cypress-faq#How-to-Cypress-Questions)
+
+#### convert Text to Number
+
+```ts
+cy.get("[data-test=number-of-rating]")
+  .invoke("text")
+  .then(parseFloat)
+  .should("be.gte", 5);
+```
