@@ -31,6 +31,10 @@ npm start
 
 Here is some useful commands:
 
+[ng generate](https://angular.io/cli/generate)
+
+[ng add](https://angular.io/cli/add)
+
 #### component
 
 ```shell
@@ -44,6 +48,14 @@ ng g c [path/component name]
 
 ```shell
 ng g s [path/service name]
+```
+
+#### Guard
+
+To protect our routes:
+
+```shell
+ng g g [guard name]
 ```
 
 #### add a module
@@ -508,23 +520,28 @@ export class ConvertToSpacesPipe implements PipeTransform {
   <a [routerLink]="['/products', product.productId]">{{product.productName}}</a>
 </td>
 ```
+
 4. Now by using `ActivatedRoute` dependency injection, we can get the `params`:
+
 ```ts title="pages/products/product-detail.component.ts"
 constructor(private route: ActivatedRoute) { }
 ```
 
 5. Now for getting the params, we can use 2 different approach based on our needs:
-    1. `Snapshot`: Read the parameter one time:
-    ```ts
-      this.route.snapshot.paramMap.get("id")
-    ```
-    2. `Observable`: Read the emitted parameters as they change:
-    ```ts
-      this.route.paramMap.subscribe(
-        params => console.log(params.get("id"))
-      )
-    ```
-    - the "id" must be matched to the `path: products/:id`
+
+   1. `Snapshot`: Read the parameter one time:
+
+   ```ts
+   this.route.snapshot.paramMap.get("id");
+   ```
+
+   2. `Observable`: Read the emitted parameters as they change:
+
+   ```ts
+   this.route.paramMap.subscribe((params) => console.log(params.get("id")));
+   ```
+
+   - the "id" must be matched to the `path: products/:id`
 
 6. Now we need to show the selected route in the view by using `router-outlet`:
 
@@ -534,7 +551,69 @@ constructor(private route: ActivatedRoute) { }
 </div>
 ```
 
-- The `base` tag in the `index.html` is very important for the routing.
+7. If we want to navigate to another route but not with routerLink, instead inside our code, we can do this:
+
+```ts title="pages/products/product-detail.component.ts"
+  constructor(private route: ActivatedRoute, private router: Router) { }
+
+  onBack(): void {
+    this.router.navigate(["/products"])
+  }
+```
+
+Now we can bind this function to a button in the HTML file to navigate.
+
+### Guard
+
+Angular provides several ways to protect our routes:
+
+1. `CanActivate`: Guard navigation **to** a route.
+2. `CanDeactivate`: Guard navigation **from** a route.
+3. `Resolve`: Pre-fetch data before activating a route.
+4. `CanLoad`: Prevent asynchronous routing.
+
+- These 4 types are like `Services` and we can use them as a dependency injection.
+
+After generating a guard, we can check our route, in this case, prevent to call invalid route:
+
+```ts title="guard/product-detail.guard.ts"
+export class ProductDetailGuard implements CanActivate {
+  constructor(private router: Router) {}
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ):
+    | Observable<boolean | UrlTree>
+    | Promise<boolean | UrlTree>
+    | boolean
+    | UrlTree {
+    const id = Number(route.paramMap.get("id"));
+    if (isNaN(id) || id < 1) {
+      alert("Invalid product id");
+      this.router.navigate(["/products"]);
+      return false;
+    }
+    return true;
+  }
+}
+```
+
+- `route: ActivatedRouteSnapshot`: Provide current route information.
+- `state: RouterStateSnapshot`: Provide router state information.
+
+Now we can use this guard to wrap those routes that we want to protect:
+
+```ts title="app.module.ts"
+RouterModule.forRoot([
+  { path: "products", component: ProductListComponent },
+  {
+    path: "products/:id",
+    canActivate: [ProductDetailGuard],
+    component: ProductDetailComponent,
+  },
+  //...
+]);
+```
 
 ## Tips
 
@@ -550,6 +629,8 @@ constructor(private route: ActivatedRoute) { }
   "assets": ["src/favicon.ico", "src/assets", "src/api"]
 }
 ```
+
+- The `base` tag in the `index.html` is very important for the routing.
 
 ### Errors
 
