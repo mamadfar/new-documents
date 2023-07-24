@@ -615,6 +615,28 @@ RouterModule.forRoot([
 ]);
 ```
 
+### NgModule
+Sometimes we need to breakdown our main `app.module.ts` to smaller module to handle better and make a good structure.
+
+#### declarations array
+- Each app has at least 1 `app.module.ts` and a `bootstrap component` (is a component which is mounted first).
+- Every `component`, `directive` or `pipe` belongs to `ONLY` one Angular module and must be added to `declaration` array (just these 3 classes!).
+- All declared components, directives and pipes are private and accessible only to those components which are declared in the same module.
+- Generally, we must not declare a `component`, `directive` or a `pipe` in 2 different Angular module.
+
+#### exports array
+
+- When we want to share a `component`, `directive` or a `pipe`, we can export them.
+- We can export a 3rd party module or a build-in module to share it with another module.
+
+#### imports array
+- We can import built-in or 3rd party module in imports array.
+- Also, we can import other Angular module that we have created.
+
+#### providers array
+
+
+
 ## Tips
 
 - Every component should add to `@NgModule()` in the `app.module.ts`
