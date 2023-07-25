@@ -1,7 +1,8 @@
 ---
 id: angular-starter
-title: angular
+title: Angular
 ---
+You can find the codes which this document was created based on that here: [Acme Product Management - Github](https://github.com/mamadfar/acme-product-management__angular)
 
 ## Installation
 
@@ -41,9 +42,6 @@ Here is some useful commands:
 ng g c [path/component name]
 ```
 
-- We can use `--flat` to create a component without folder.
-- We can use `--skip-tests` to prevent generating testing file
-
 #### Service
 
 ```shell
@@ -55,10 +53,23 @@ ng g s [path/service name]
 To protect our routes:
 
 ```shell
-ng g g [guard name]
+ng g g [path/guard name]
 ```
 
-#### add a module
+#### Module
+To generate an Angular module:
+```shell
+ng g m [path/module name] --flat -m [module name - the exist one which we want to import new module in its array]
+```
+#### Pipe
+```shell
+ng g p [path/pipe name]
+```
+
+- We can use `--flat` to create a component, module, etc without folder.
+- We can use `--skip-tests` to prevent generating testing file for component, service, guard
+
+#### add a 3rd party module
 
 We can use `add` to add an external library or module:
 
@@ -265,7 +276,7 @@ Sometimes we need to create a function or a piece of codes that is independent f
 
 #### Services
 
-Service is a type of class that is independent.
+Service is a type of class that is independent. [#Service](#service)
 
 - So we can create a service and Angular will make it `Singleton` (single instance of our service) and
   the `Injector` (is a tool to inject our services as a dependency to our classes) will inject our services in the class.
@@ -565,7 +576,7 @@ Now we can bind this function to a button in the HTML file to navigate.
 
 ### Guard
 
-Angular provides several ways to protect our routes:
+Angular provides several ways to protect our routes: [#Guard](#guard)
 
 1. `CanActivate`: Guard navigation **to** a route.
 2. `CanDeactivate`: Guard navigation **from** a route.
@@ -618,23 +629,133 @@ RouterModule.forRoot([
 ### NgModule
 Sometimes we need to breakdown our main `app.module.ts` to smaller module to handle better and make a good structure.
 
-#### declarations array
+- To generate a module we can use [#Module](#module)
+- After creating a new module, we should add it into `imports` array in any module that we want to use. (In case of not using CLI)
+- Then we can add all components, pipes, guard and other things that are related to each other in new module like `FormsModule`, etc.
+- Also, we can add the related routes to the router inside the new module not as a `forRoot`, as a `forChild`.
+- The CLI command will import `CommonModule` by default which is used for share the common module between all modules, like `BrowserModule` (`ngIf-ngFor`).
+```diff title="app.module.ts" {4-7,14,17-18} showLineNumbers
+@NgModule({
+  declarations: [
+    AppComponent,
+-   ProductListComponent,
+-   ConvertToSpacesPipe,
+-   StarComponent,
+-   ProductDetailComponent,
+    WelcomeComponent,
+    NotFoundComponent,
+    NavbarComponent
+  ],
+  imports: [
+    BrowserModule,
+-   FormsModule,
+    HttpClientModule,
+    RouterModule.forRoot([
+-     {path: "products", component: ProductListComponent},
+-     {path: "products/:id", canActivate: [ProductDetailGuard], component: ProductDetailComponent},
+      {path: "welcome", component: WelcomeComponent},
+      {path: "", redirectTo: "welcome", pathMatch: "full"},
+      {path: "**", component: NotFoundComponent},
+    ]),
++   ProductModule
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+```diff title="/pages/products/product.module.ts" {4-7,11-17} showLineNumbers
+//...
+@NgModule({
+  declarations: [
++   ProductListComponent,
++   ProductDetailComponent,
++   ConvertToSpacesPipe,
++   StarComponent
+  ],
+  imports: [
+    CommonModule,
++   FormsModule,
++   RouterModule.forChild(
++     [
++       {path: "products", component: ProductListComponent},
++       {path: "products/:id", canActivate: [ProductDetailGuard], component: ProductDetailComponent},
++     ]
++   )
+  ]
+})
+export class ProductModule { }
+```
+
+### Shared Module (Standalone)
+Generally, when we want to organize commonly used pieces of our app and export those pieces to share them, we use `share.module.ts`:
+```shell
+ng g m components/shared/shared --flat -m pages/products/product.module
+```
+In this case, we want to use `star.component.ts` in `product` and `products` pages, so we need to `import` it in `product.module.ts`.
+
+```diff title="/pages/products/product.module.ts" {6-7,10-11,18} showLineNumbers
+//...
+@NgModule({
+  declarations: [
+    ProductListComponent,
+    ProductDetailComponent,
+-   ConvertToSpacesPipe,
+-   StarComponent
+  ],
+  imports: [
+-   CommonModule,
+-   FormsModule,
+    RouterModule.forChild(
+      [
+        {path: "products", component: ProductListComponent},
+        {path: "products/:id", canActivate: [ProductDetailGuard], component: ProductDetailComponent},
+      ]
+    ),
++   SharedModule
+  ]
+})
+export class ProductModule { }
+```
+```diff title="/components/shared/shared.module.ts" {4-5,11-14} showLineNumbers
+//...
+@NgModule({
+  declarations: [
++   ConvertToSpacesPipe,
++   StarComponent
+  ],
+  imports: [
+    CommonModule
+  ],
+  exports: [
++   CommonModule,
++   FormsModule,
++   StarComponent,
++   ConvertToSpacesPipe
+  ]
+})
+export class SharedModule { }
+```
+- We must `declare` and `export` those module that we want to use it in other modules (except the build-in Angular modules)
+
+
+### declarations array
 - Each app has at least 1 `app.module.ts` and a `bootstrap component` (is a component which is mounted first).
 - Every `component`, `directive` or `pipe` belongs to `ONLY` one Angular module and must be added to `declaration` array (just these 3 classes!).
 - All declared components, directives and pipes are private and accessible only to those components which are declared in the same module.
 - Generally, we must not declare a `component`, `directive` or a `pipe` in 2 different Angular module.
 
-#### exports array
+### exports array
 
 - When we want to share a `component`, `directive` or a `pipe`, we can export them.
 - We can export a 3rd party module or a build-in module to share it with another module.
 
-#### imports array
+### imports array
 - We can import built-in or 3rd party module in imports array.
 - Also, we can import other Angular module that we have created.
+- Importing a module does **NOT** provide access to its imported modules.
 
-#### providers array
-
+### providers array
+It's not recommended anymore, instead use `providedIn: "root"` inside the service.
 
 
 ## Tips
@@ -653,6 +774,8 @@ Sometimes we need to breakdown our main `app.module.ts` to smaller module to han
 ```
 
 - The `base` tag in the `index.html` is very important for the routing.
+- `Hash Busting`: Every time we try to build our app, the bundler try to hash the Js files, because browsers are going to 
+cache, by doing this, the browsers will download our files again.
 
 ### Errors
 
