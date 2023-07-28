@@ -634,7 +634,7 @@ Sometimes we need to breakdown our main `app.module.ts` to smaller module to han
 - Then we can add all components, pipes, guard and other things that are related to each other in new module like `FormsModule`, etc.
 - Also, we can add the related routes to the router inside the new module not as a `forRoot`, as a `forChild`.
 - The CLI command will import `CommonModule` by default which is used for share the common module between all modules, like `BrowserModule` (`ngIf-ngFor`).
-```diff title="app.module.ts" {4-7,14,17-18} showLineNumbers
+```diff title="app.module.ts" {4-7,14,17-18, 23} showLineNumbers
 @NgModule({
   declarations: [
     AppComponent,

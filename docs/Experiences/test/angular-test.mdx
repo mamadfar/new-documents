@@ -1,0 +1,42 @@
+---
+title: Angular Testing
+---
+
+## Test types
+
+1. `E2E`: Stands for `End To End` test. When we talk about e2e, means testing on a live and run app.
+This kind of test uses for simulate user behavior on the live app. It tends to be less reliable.
+
+![e2e](/img/e2e.png)
+
+2. `Unit testing`: Like testing a single class or function. In other word, isolation test and its independent piece of code.
+In this type of test, we don't test the `template` file, we need to just test the `ts` file.
+
+![unit](/img/unit-testing.png)
+
+3. `Integration test`: When we want to test a few functions, classes or components which are connected 
+to each other, we use this method. Generally it is more than a **Unit** and less than an **Application**.
+
+    - `Shallow`: Just test a single component (ts and template html file)
+    - `Deep`: Test the main component and its children.
+
+![integration](/img/integration-tests.png)
+
+## Mocking
+Sometimes we need to mock our services or use a fake data instead of real data. We have 4 types of
+mocking:
+
+1. `Dummies`: Very simple object just to simulate a simple object (like dummy class, dummy dependency).
+2. `Stubs`: An object which we can control its behavior, for example if we call a method in Stubs, we 
+can decide what should the return value be.
+
+3. `Spies`: Is an object which we can track which method is called and how many times called and what 
+parameters is used.
+
+4. `True mocks`: Is more complex and we can use it in very specific situation.
+
+🚩 An object means a class, dependency, function, services, etc.
+
+## Tools
+1. `Karma`: Is a test runner on the browser
+2. `Jasmine`: To create mocks and generally the tests
