@@ -40,3 +40,33 @@ parameters is used.
 ## Tools
 1. `Karma`: Is a test runner on the browser
 2. `Jasmine`: To create mocks and generally the tests
+
+## Testing
+For testing in Angular, we should have a file with `.spec.ts` extension.
+```ts title="app/first-test.spec.ts"
+describe('First Test', function () {
+  let testVar: any;
+
+  beforeEach(() => {
+    testVar = {}
+  });
+
+  it('should return true if a is true', function () {
+    //? Arrange
+    testVar.a = false;
+
+    //? Act
+    testVar.a = true;
+
+    //? Assertion
+    expect(testVar.a).toBe(true);
+  });
+});
+```
+- In each test cases we have 3 sections:
+    1. `Arrange`: When we should initialize our variable.
+    2. `Act`: Change the value to expected value.
+    3. `Assertion`: Check our data if it reaches our needs.
+- `beforeEach`: This function will execute before every `it` or test cases
+- We can use `test` instead of `it`.
+- Convention for description for it is using `should` at the beginning of each test cases.
