@@ -5,53 +5,59 @@ title: Angular Testing
 ## Test types
 
 1. `E2E`: Stands for `End To End` test. When we talk about e2e, means testing on a live and run app.
-This kind of test uses for simulate user behavior on the live app. It tends to be less reliable.
+   This kind of test uses for simulate user behavior on the live app. It tends to be less reliable.
 
 ![e2e](/img/e2e.png)
 
 2. `Unit testing`: Like testing a single class or function. In other word, isolation test and its independent piece of code.
-In this type of test, we don't test the `template` file, we need to just test the `ts` file.
+   In this type of test, we don't test the `template` file, we need to just test the `ts` file.
 
 ![unit](/img/unit-testing.png)
 
-3. `Integration test`: When we want to test a few functions, classes or components which are connected 
-to each other, we use this method. Generally it is more than a **Unit** and less than an **Application**.
+3.  `Integration test`: When we want to test a few functions, classes or components which are connected
+    to each other, we use this method. Generally it is more than a **Unit** and less than an **Application**.
 
-    - `Shallow`: Just test a single component (ts and template html file)
-    - `Deep`: Test the main component and its children.
+        - `Shallow`: Just test a single component (ts and template html file)
+        - `Deep`: Test the main component and its children.
 
 ![integration](/img/integration-tests.png)
 
 ## Mocking
+
 Sometimes we need to mock our services or use a fake data instead of real data. We have 4 types of
 mocking:
 
 1. `Dummies`: Very simple object just to simulate a simple object (like dummy class, dummy dependency).
-2. `Stubs`: An object which we can control its behavior, for example if we call a method in Stubs, we 
-can decide what should the return value be.
+2. `Stubs`: An object which we can control its behavior, for example if we call a method in Stubs, we
+   can decide what should the return value be.
 
-3. `Spies`: Is an object which we can track which method is called and how many times called and what 
-parameters is used.
+3. `Spies`: Is an object which we can track which method is called and how many times called and what
+   parameters is used.
 
 4. `True mocks`: Is more complex and we can use it in very specific situation.
 
 🚩 An object means a class, dependency, function, services, etc.
 
 ## Tools
+
 1. `Karma`: Is a test runner on the browser
 2. `Jasmine`: To create mocks and generally the tests
 
 ## Testing
+
+### Simple test
+
 For testing in Angular, we should have a file with `.spec.ts` extension.
+
 ```ts title="app/first-test.spec.ts"
-describe('First Test', function () {
+describe("First Test", function () {
   let testVar: any;
 
   beforeEach(() => {
-    testVar = {}
+    testVar = {};
   });
 
-  it('should return true if a is true', function () {
+  it("should return true if a is true", function () {
     //? Arrange
     testVar.a = false;
 
@@ -61,12 +67,54 @@ describe('First Test', function () {
     //? Assertion
     expect(testVar.a).toBe(true);
   });
+  it("should pending", function () {
+    pending("For later");
+  });
+  xit("should disabled", function () {});
+  it("should fail", function () {
+    fail("Fail test");
+  });
 });
 ```
+
 - In each test cases we have 3 sections:
-    1. `Arrange`: When we should initialize our variable.
-    2. `Act`: Change the value to expected value.
-    3. `Assertion`: Check our data if it reaches our needs.
+  1. `Arrange`: When we should initialize our variable.
+  2. `Act`: Change the value to expected value.
+  3. `Assertion`: Check our data if it reaches our needs.
 - `beforeEach`: This function will execute before every `it` or test cases
 - We can use `test` instead of `it`.
 - Convention for description for it is using `should` at the beginning of each test cases.
+- `pending()`: By using this function we can specify that, this test is not completed yet
+  and `Karma` will show it with yellow color. Also, we can pass a parameter to show a message in `Karma`
+
+- `xit`: Means we want to temporary disable this test.
+- `fail()`: We can manually fail our test, to check the test case. Also, we can pass a param as a message.
+
+### Services
+For services we need to instantiate the service and call the methods to order to use them.
+```ts title="calculator.service.ts"
+export class CalculatorService {
+  add(n1: number, n2: number) {
+    let result = n1 + n2;
+    return result;
+  }
+  subtract(n1: number, n2: number) {
+    let result = n1 - n2;
+    return result;
+  }
+}
+```
+```ts title="calculator.service.spec.ts"
+describe("CalculatorService", function () {
+  it("should add two numbers", function () {
+    const calculator = new CalculatorService();
+    let result = calculator.add(2, 2);
+    expect(result).toBe(4);
+  });
+  it("should subtract two numbers", function () {
+    let calculator = new CalculatorService();
+    let result = calculator.subtract(2, 2);
+    expect(result).toBe(0);
+  });
+});
+```
