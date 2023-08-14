@@ -1,12 +1,16 @@
 ---
 title: Svelte
 ---
+
 It's framework like React, Vue and Next.
 
-## How to use
+## Introduction
+
 ### String Interpolation
+
 By using curly braces we can bind a variable to DOM or bind to an attribute.
-```svelte
+
+```jsx
 <script>
 	let src = '/tutorial/image.gif';
 	let name="A man";
@@ -18,12 +22,15 @@ By using curly braces we can bind a variable to DOM or bind to an attribute.
     //...
 </style>
 ```
+
 - We can use shorthand to bind a variable with the same name to an attribute.
 - Style tag is a component scope tag and it won't leak out.
 
 ### Import
+
 Similar to React.
-```svelte
+
+```jsx
 <script>
     import Nested from "./Nested.svelte"
 </script>
@@ -31,9 +38,12 @@ Similar to React.
 <p>This is a paragraph.</p>
 <Nested/>
 ```
+
 ### Functions and updating DOM
+
 To do that, we can use events:
-```svelte
+
+```jsx
 <script>
 	let count = 0;
 
@@ -46,10 +56,13 @@ To do that, we can use events:
 	Clicked {count}	{count === 1 ? 'time' : 'times'}
 </button>
 ```
+
 ### Reactive action
+
 To do so, we need to use `$` to declare this variable is a reactive and dependent one,
 so, Svelte will re-run the component when one of those references changed.
-```svelte
+
+```jsx
 <script>
 	let count = 0;
 	$: doubled = count * 2;
@@ -65,9 +78,12 @@ so, Svelte will re-run the component when one of those references changed.
 
 <p>{count} doubled is {doubled}</p>
 ```
+
 #### Group reactive statements
+
 We can use `$` with `if` or a function:
-```svelte
+
+```jsx
 <script>
 	let count = 0;
     $: console.log('the count is ' + count);
@@ -86,11 +102,16 @@ We can use `$` with `if` or a function:
 	{count === 1 ? 'time' : 'times'}
 </button>
 ```
+
+## Reactivity
+
 ### Reactive Array & Object
-As we know, `Array` and `Object` are by reference, in this case, to tell the complier 
+
+As we know, `Array` and `Object` are by reference, in this case, to tell the complier
 update the values, we need to reassign the variable to itself (or using speared operator),
 otherwise, it won't work.
-```svelte
+
+```jsx
 <script>
 	let numbers = [1, 2, 3, 4];
 
@@ -107,34 +128,41 @@ otherwise, it won't work.
 
 <button on:click={addNumber}> Add a number </button>
 ```
+
 [Array & Object](https://svelte.dev/tutorial/updating-arrays-and-objects)
 
-### Props
+## Props
+
 For using `props` in Svelte, we need to first, pass the props with the component,
 then, export the props inside the passed props component:
-```svelte title="App.svelte"
+
+```jsx title="App.svelte"
 <script>
 	import Nested from './Nested.svelte';
 </script>
 
 <Nested answer={42} />
 ```
-```svelte title="Nested.svelte"
+
+```jsx title="Nested.svelte"
 <script>
 	export let answer;
 </script>
 
 <p>The answer is {answer}</p>
 ```
+
 - Also, we can initialize the props:
-```svelte
-<script>
-	export let answer = "a mystery";
-</script>
+
+```jsx
+<script>export let answer = "a mystery";</script>
 ```
+
 #### Spread props
+
 We can pass properties of an object to a component by using spread operator:
-```svelte title="App.svelte"
+
+```jsx title="App.svelte"
 <script>
 	import Info from './Info.svelte';
 
@@ -150,7 +178,8 @@ We can pass properties of an object to a component by using spread operator:
 <Info {...pkg}/>
 
 ```
-```svelte title="Info.svelte"
+
+```jsx title="Info.svelte"
 <script>
 	export let name;
 	export let version;
@@ -164,12 +193,299 @@ We can pass properties of an object to a component by using spread operator:
 	and <a href={website}>learn more here</a>
 </p>
 ```
-- Also, we can use `$$props` directly, instead of export one by one, but it's not 
-recommended by Svelte, cause it's difficult for Svelte to optimize, but we can use it in rare situation.
-```svelte title="Info.svelte"
+
+- Also, we can use `$$props` directly, instead of export one by one, but it's not
+  recommended by Svelte, cause it's difficult for Svelte to optimize, but we can use it in rare situation.
+
+```jsx title="Info.svelte"
 <p>
-	The <code>{$$props.name}</code> package is {$$props.speed} fast. Download version {$$props.version} from
-	<a href="https://www.npmjs.com/package/{name}">npm</a>
-	and <a href={$$props.website}>learn more here</a>
+  The <code>{$$props.name}</code> package is {$$props.speed} fast. Download
+  version {$$props.version} from
+  <a href="https://www.npmjs.com/package/{name}">npm</a>
+  and <a href={$$props.website}>learn more here</a>
 </p>
 ```
+
+## Logic
+
+### if/else
+
+Condition in Svelte is shown with `{#if}{/if}`:
+
+```jsx
+{#if user.loggedIn}
+	<button on:click={toggle}> Log out </button>
+{:else}
+	<button on:click={toggle}> Log in </button>
+{/if}
+```
+
+#### else if
+
+```jsx
+{#if x > 10}
+  <p>{x} is greater than 10</p>
+{:else if 5 > x}
+  <p>{x} is less than 5</p>
+{:else}
+  <p>{x} is between 5 and 10</p>
+{/if}
+```
+
+🔗 [Await blocks](https://svelte.dev/tutorial/if-blocks)
+
+### loop
+
+`each` represents for `loop` in Svelte:
+
+```jsx
+<script>
+	let cats = [
+		{ id: 'J---aiyznGQ', name: 'Keyboard Cat' },
+		{ id: 'z_AbfPXTKms', name: 'Maru' },
+	];
+</script>
+<ul>
+	{#each cats as cat, index (cat.id)}
+	<li>
+		<a target="_blank" href="https://www.youtube.com/watch?v={cat.id}" rel="noreferrer">
+			{index + 1}: {cat.name}
+		</a>
+	</li>
+	{/each}
+</ul>
+```
+
+- Also, we can destructure the cat object: `{#each cats as {id, name}}`
+- For `delete` and `update` a value in the list, we need to specify to Svelte which one is the one
+  that we want to edit, so we need to specify a `key` for our `loop` by using a unique identifier: `(cat.id)`
+
+🔗 [Each blocks](https://svelte.dev/tutorial/each-blocks)
+
+### Await blocks
+
+In Svelte, we can use `await` blocks inside HTML to show the stats of the promise:
+
+```jsx
+<script>
+	async function getRandomNumber() {
+		const res = await fetch(`/tutorial/random-number`);
+		const text = await res.text();
+
+		if (res.ok) {
+			return text;
+		} else {
+			throw new Error(text);
+		}
+	}
+
+	let promise = getRandomNumber(); // execute at the load time
+
+	function handleClick() {
+		promise = getRandomNumber();
+	}
+</script>
+
+<button on:click={handleClick}> generate random number </button>
+
+{#await promise}
+	<p>...waiting</p>
+{:then number}  <!-- number is the promise return value -->
+	<p>{number}</p>
+{:catch error}
+	<p>{error}</p>
+{/await}
+```
+
+- Also, we can ignore the pending state and just wait for the result:
+
+```jsx
+{#await promise then number}
+  <p>the number is {number}</p>
+{/await}
+```
+
+- The `await` block will take care of `race` promises and gives us just the first resolved promise.
+
+🔗 [Await blocks](https://svelte.dev/tutorial/await-blocks)
+
+## Events
+### events and `on:`
+
+We can use any DOM events with `on:` directive:
+
+```jsx
+<script>
+<div on:mousemove={handleMousemove} role="presentation"> <!-- role="none" -->
+	The mouse position is {m.x} x {m.y}
+</div>
+</script>
+```
+
+- Also, we can use inline handlers and there is no restriction or performance issue with that.
+
+```jsx
+<div
+  on:mousemove={(e) => (m = { x: e.clientX, y: e.clientY })}
+  role="presentation"
+>
+  The mouse position is {m.x} x {m.y}
+</div>
+```
+
+🔗 [Events](https://svelte.dev/tutorial/dom-events)
+
+### Event modifiers
+
+With the help of modifiers we have a better control over our codes
+
+```jsx
+<script>
+	function handleClick() {
+		alert('clicked');
+	}
+</script>
+
+/<button on:click|once={handleClick}> Click me </button>
+```
+
+#### The full list of modifiers
+
+1. `preventDefault` — calls `event.preventDefault()` before running the handler. Useful for client-side form handling, for example.
+2. `stopPropagation` — calls `event.stopPropagation()`, preventing the event reaching the next element
+3. `passive` — improves scrolling performance on touch/wheel events (Svelte will add it automatically where it's safe to do so)
+4. `nonpassive` — explicitly set passive: false
+5. `capture` — fires the handler during the capture phase instead of the bubbling phase
+6. `once` — remove the handler after the first time it runs
+7. `self` — only trigger handler if event.target is the element itself
+8. `trusted` — only trigger handler if event.isTrusted is true. I.e. if the event is triggered by a user action.
+
+- Also, we can use them as a chain modifiers: `on:click|once|capture={...}`
+
+🔗 [Event modifiers](https://svelte.dev/tutorial/event-modifiers)
+
+### Component events
+
+To pass a function (event) to another component, we need to use `on:` directive in parent component
+and `createEventDispatcher` inside child component to dispatch the function (event).
+
+```jsx title="App.svelte"
+<script>
+	import Inner from './Inner.svelte';
+
+	function handleMessage(event) {
+		alert(event.detail.text);
+	}
+</script>
+
+<Inner on:myevent={handleMessage} />
+```
+```jsx title="Inner.svelte"
+<script>
+	import {createEventDispatcher} from "svelte";
+
+	const dispatch = createEventDispatcher();
+
+	function sayHello() {
+		dispatch("myevent", {
+			text: "Hello!"
+		})
+	}
+</script>
+
+<button on:click={sayHello}> Click to say hello </button>
+```
+- `myevent`: is not a unique name.
+- We **MUST** use `on:` to pass a function (event).
+- `createEventDispatcher` **MUST** be called at the load time once, we can't do it later. e.g. inside `setTimeout`.
+- Also, it works for DOM events too, like: `on:click`:
+
+```jsx title="App.svelte"
+<script>
+	import CustomButton from './CustomButton.svelte';
+
+	function handleClick() {
+		alert('Button Clicked');
+	}
+</script>
+
+<CustomButton on:click={handleClick} />
+```
+```jsx title="CustomButton.svelte"
+<button on:click> Click me </button>
+```
+
+🔗 [Component events](https://svelte.dev/tutorial/component-events)
+
+#### Event forwarding
+If we want to pass the function to multiple layer inside, we can do the same as before,
+but it's not efficient, instead, we can just pass the event, to the nested component without any additional code.
+```jsx title="App.svelte"
+<script>
+	import Outer from './Outer.svelte';
+
+	function handleMessage(event) {
+		alert(event.detail.text);
+	}
+</script>
+
+<Outer on:myevent={handleMessage} />
+```
+```jsx title="Outer.svelte"
+<script>
+	import Inner from './Inner.svelte';
+</script>
+
+<Inner on:myevent/>
+```
+```jsx title="Inner.svelte"
+<script>
+	import {createEventDispatcher} from "svelte";
+
+	const dispatch = createEventDispatcher();
+
+	function sayHello() {
+		dispatch("myevent", {
+			text: "Hello!"
+		})
+	}
+</script>
+
+<button on:click={sayHello}> Click to say hello </button>
+```
+
+🔗 [Event forwarding](https://svelte.dev/tutorial/event-forwarding)
+
+## Bindings
+### Text/Number/Range inputs
+By using `bind:` directive, we are able to bind a variable to an input:
+```jsx
+<script>
+	let name = 'world';
+</script>
+
+<input bind:value={name} />
+<h1>Hello {name}!</h1>
+<input type="number" bind:value={a} min="0" max="10" />
+<input type="range" bind:value={a} min="0" max="10" />
+<p>{a}</p>
+```
+- Basically, Svelte will take care of input's type, for example, if we have a `range` or `number`
+inputs, by using `bind:`, Svelte will change the type of inputs to number, cause every inputs are string.
+
+### Checkbox
+There is a `bind:` for checkbox too but, bind to `checked` instead of `value`:
+```jsx
+<script>
+	let yes = false;
+</script>
+
+<label>
+	<input type="checkbox" bind:checked={yes} />
+	Yes! Send me regular email spam
+</label>
+```
+
+## Tips
+
+- `#` uses for opening tag and `/` for closing tag.
