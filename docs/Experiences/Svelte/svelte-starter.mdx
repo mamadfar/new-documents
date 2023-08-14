@@ -1,0 +1,175 @@
+---
+title: Svelte
+---
+It's framework like React, Vue and Next.
+
+## How to use
+### String Interpolation
+By using curly braces we can bind a variable to DOM or bind to an attribute.
+```svelte
+<script>
+	let src = '/tutorial/image.gif';
+	let name="A man";
+</script>
+
+<img {src} alt="{name} dances."/>
+
+<style>
+    //...
+</style>
+```
+- We can use shorthand to bind a variable with the same name to an attribute.
+- Style tag is a component scope tag and it won't leak out.
+
+### Import
+Similar to React.
+```svelte
+<script>
+    import Nested from "./Nested.svelte"
+</script>
+
+<p>This is a paragraph.</p>
+<Nested/>
+```
+### Functions and updating DOM
+To do that, we can use events:
+```svelte
+<script>
+	let count = 0;
+
+	function incrementCount() {
+		count += 1;
+	}
+</script>
+
+<button on:click={incrementCount}>
+	Clicked {count}	{count === 1 ? 'time' : 'times'}
+</button>
+```
+### Reactive action
+To do so, we need to use `$` to declare this variable is a reactive and dependent one,
+so, Svelte will re-run the component when one of those references changed.
+```svelte
+<script>
+	let count = 0;
+	$: doubled = count * 2;
+
+	function handleClick() {
+		count += 1;
+	}
+</script>
+
+<button on:click={handleClick}>
+	Clicked {count}	{count === 1 ? 'time' : 'times'}
+</button>
+
+<p>{count} doubled is {doubled}</p>
+```
+#### Group reactive statements
+We can use `$` with `if` or a function:
+```svelte
+<script>
+	let count = 0;
+    $: console.log('the count is ' + count);
+    $: if (count >= 10) {
+		alert("count is dangerously high!");
+		count = 9;
+	}
+
+	function handleClick() {
+		count += 1;
+	}
+</script>
+
+<button on:click={handleClick}>
+	Clicked {count}
+	{count === 1 ? 'time' : 'times'}
+</button>
+```
+### Reactive Array & Object
+As we know, `Array` and `Object` are by reference, in this case, to tell the complier 
+update the values, we need to reassign the variable to itself (or using speared operator),
+otherwise, it won't work.
+```svelte
+<script>
+	let numbers = [1, 2, 3, 4];
+
+	function addNumber() {
+		numbers = [...numbers, numbers.length + 1]
+		// numbers.push(numbers.length + 1);
+		// numbers = numbers;
+	}
+
+	$: sum = numbers.reduce((t, n) => t + n, 0);
+</script>
+
+<p>{numbers.join(' + ')} = {sum}</p>
+
+<button on:click={addNumber}> Add a number </button>
+```
+[Array & Object](https://svelte.dev/tutorial/updating-arrays-and-objects)
+
+### Props
+For using `props` in Svelte, we need to first, pass the props with the component,
+then, export the props inside the passed props component:
+```svelte title="App.svelte"
+<script>
+	import Nested from './Nested.svelte';
+</script>
+
+<Nested answer={42} />
+```
+```svelte title="Nested.svelte"
+<script>
+	export let answer;
+</script>
+
+<p>The answer is {answer}</p>
+```
+- Also, we can initialize the props:
+```svelte
+<script>
+	export let answer = "a mystery";
+</script>
+```
+#### Spread props
+We can pass properties of an object to a component by using spread operator:
+```svelte title="App.svelte"
+<script>
+	import Info from './Info.svelte';
+
+	const pkg = {
+		name: 'svelte',
+		version: 3,
+		speed: 'blazing',
+		website: 'https://svelte.dev'
+	};
+</script>
+
+<!-- <Info name={pkg.name} version={pkg.version} speed={pkg.speed} website={pkg.website} /> -->
+<Info {...pkg}/>
+
+```
+```svelte title="Info.svelte"
+<script>
+	export let name;
+	export let version;
+	export let speed;
+	export let website;
+</script>
+
+<p>
+	The <code>{name}</code> package is {speed} fast. Download version {version} from
+	<a href="https://www.npmjs.com/package/{name}">npm</a>
+	and <a href={website}>learn more here</a>
+</p>
+```
+- Also, we can use `$$props` directly, instead of export one by one, but it's not 
+recommended by Svelte, cause it's difficult for Svelte to optimize, but we can use it in rare situation.
+```svelte title="Info.svelte"
+<p>
+	The <code>{$$props.name}</code> package is {$$props.speed} fast. Download version {$$props.version} from
+	<a href="https://www.npmjs.com/package/{name}">npm</a>
+	and <a href={$$props.website}>learn more here</a>
+</p>
+```
