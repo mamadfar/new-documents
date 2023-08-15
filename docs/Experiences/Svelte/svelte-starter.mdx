@@ -310,6 +310,7 @@ In Svelte, we can use `await` blocks inside HTML to show the stats of the promis
 🔗 [Await blocks](https://svelte.dev/tutorial/await-blocks)
 
 ## Events
+
 ### events and `on:`
 
 We can use any DOM events with `on:` directive:
@@ -380,6 +381,7 @@ and `createEventDispatcher` inside child component to dispatch the function (eve
 
 <Inner on:myevent={handleMessage} />
 ```
+
 ```jsx title="Inner.svelte"
 <script>
 	import {createEventDispatcher} from "svelte";
@@ -395,6 +397,7 @@ and `createEventDispatcher` inside child component to dispatch the function (eve
 
 <button on:click={sayHello}> Click to say hello </button>
 ```
+
 - `myevent`: is not a unique name.
 - We **MUST** use `on:` to pass a function (event).
 - `createEventDispatcher` **MUST** be called at the load time once, we can't do it later. e.g. inside `setTimeout`.
@@ -411,6 +414,7 @@ and `createEventDispatcher` inside child component to dispatch the function (eve
 
 <CustomButton on:click={handleClick} />
 ```
+
 ```jsx title="CustomButton.svelte"
 <button on:click> Click me </button>
 ```
@@ -418,8 +422,10 @@ and `createEventDispatcher` inside child component to dispatch the function (eve
 🔗 [Component events](https://svelte.dev/tutorial/component-events)
 
 #### Event forwarding
+
 If we want to pass the function to multiple layer inside, we can do the same as before,
 but it's not efficient, instead, we can just pass the event, to the nested component without any additional code.
+
 ```jsx title="App.svelte"
 <script>
 	import Outer from './Outer.svelte';
@@ -431,6 +437,7 @@ but it's not efficient, instead, we can just pass the event, to the nested compo
 
 <Outer on:myevent={handleMessage} />
 ```
+
 ```jsx title="Outer.svelte"
 <script>
 	import Inner from './Inner.svelte';
@@ -438,6 +445,7 @@ but it's not efficient, instead, we can just pass the event, to the nested compo
 
 <Inner on:myevent/>
 ```
+
 ```jsx title="Inner.svelte"
 <script>
 	import {createEventDispatcher} from "svelte";
@@ -457,24 +465,36 @@ but it's not efficient, instead, we can just pass the event, to the nested compo
 🔗 [Event forwarding](https://svelte.dev/tutorial/event-forwarding)
 
 ## Bindings
-### Text/Number/Range inputs
+
+### Text and Numeric inputs
+
 By using `bind:` directive, we are able to bind a variable to an input:
+
 ```jsx
 <script>
 	let name = 'world';
+	let value = "mamad";
 </script>
 
 <input bind:value={name} />
 <h1>Hello {name}!</h1>
+<textarea bind:value />
 <input type="number" bind:value={a} min="0" max="10" />
 <input type="range" bind:value={a} min="0" max="10" />
 <p>{a}</p>
 ```
+
 - Basically, Svelte will take care of input's type, for example, if we have a `range` or `number`
-inputs, by using `bind:`, Svelte will change the type of inputs to number, cause every inputs are string.
+  inputs, by using `bind:`, Svelte will change the type of inputs to number, cause every inputs are string.
+
+🔗 [Text inputs](https://svelte.dev/tutorial/text-inputs)
+
+🔗 [Numeric inputs](https://svelte.dev/tutorial/numeric-inputs)
 
 ### Checkbox
+
 There is a `bind:` for checkbox too but, bind to `checked` instead of `value`:
+
 ```jsx
 <script>
 	let yes = false;
@@ -486,6 +506,130 @@ There is a `bind:` for checkbox too but, bind to `checked` instead of `value`:
 </label>
 ```
 
+🔗 [Checkbox](https://svelte.dev/tutorial/checkbox-inputs)
+
+### Group inputs
+
+By using `group:` we can group a multiple inputs with relating to the same value:
+
+```jsx
+<script>
+	let scoops = 1;
+	let flavours = ['Mint choc chip'];
+	let menu = ['Cookies and cream', 'Mint choc chip', 'Raspberry ripple'];
+</script>
+
+<h2>Size</h2>
+<label>
+	<input type="radio" bind:group={scoops} name="scoops" value={1} />
+	One scoop
+</label>
+<label>
+	<input type="radio" bind:group={scoops} name="scoops" value={2} />
+	Two scoops
+</label>
+<label>
+	<input type="radio" bind:group={scoops} name="scoops" value={3} />
+	Three scoops
+</label>
+
+<h2>Flavours</h2>
+{#each menu as flavour, i (i)}
+<label>
+	<input type="checkbox" bind:group={flavours} name="flavours" value={flavour} />
+	{flavour}
+</label>
+{/each}
+```
+
+🔗 [Group inputs](https://svelte.dev/tutorial/group-inputs)
+
+### Select
+
+Similar to the others by using `bind:` to the select `value`:
+
+```jsx
+<script>
+	let questions = [
+		{ id: 1, text: `Where did you go to school?` },
+		{ id: 2, text: `What is your mother's name?` },
+		{ id: 3, text: `What is another personal fact that an attacker could easily find with Google?` }
+	];
+	let selected;
+	let answer = '';
+</script>
+	<select bind:value={selected} on:change={() => (answer = '')}>
+		{#each questions as question}
+			<option value={question}>
+				{question.text}
+			</option>
+		{/each}
+	</select>
+	{answer}
+```
+- The first value will be the default one.
+
+🔗 [Select](https://svelte.dev/tutorial/select-bindings)
+
+### Select multiple
+
+Similar to checkboxes
+
+```jsx
+<script>
+	let flavours = ['Mint choc chip'];
+	let menu = ['Cookies and cream', 'Mint choc chip', 'Raspberry ripple'];
+</script>
+<select multiple bind:value={flavours}>
+  {#each menu as flavour}
+    <option value={flavour}>
+      {flavour}
+    </option>
+  {/each}
+</select>
+```
+- Hold `ctrl` to select multiple options.
+
+🔗 [Select multiple](https://svelte.dev/tutorial/multiple-select-bindings)
+
+### Contenteditable bindings
+We can use these 3 methods to bind a value:
+1. `innerHTML`: Will parse the HTML tags.
+2. `innerText`: Cause `Reflow` and it's expensive, it'll get just the tags which is human-readable.
+3. `textContent`: Won't parse HTML tags and also will get all the HTML tags, including `script` and `style`. (Better)
+
+```jsx
+<script>
+	let html = '<p>Write some text!</p>';
+</script>
+
+<div contenteditable="true" bind:innerHTML={html} />
+
+<pre>{html}</pre>
+```
+
+🔗 [Contenteditable bindings](https://svelte.dev/tutorial/contenteditable-bindings)
+
+### This
+We can bind every rendered elements (rendered in `onMount`) to readonly `this`.
+
+🔗 [This](https://svelte.dev/tutorial/bind-this)
+
 ## Tips
 
 - `#` uses for opening tag and `/` for closing tag.
+- We can bind any HTML attribute to a value with `bind:`.
+- There are a few HTML attributes which are readonly and we can just show or save them, like:
+1. Block-level elements
+	- `clientWidth`
+	- `clientHeight`
+	- `offsetWidth`
+	- `offsetHeight`
+2. Audio and Video elements
+	- `duration`
+	- `buffered`
+	- `seekable`
+	- `played`
+	- `seeking`
+	- `ended`
+- `tick` will immediately update DOM;
