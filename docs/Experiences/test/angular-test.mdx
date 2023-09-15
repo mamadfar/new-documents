@@ -118,3 +118,79 @@ describe("CalculatorService", function () {
   });
 });
 ```
+#### Inject other services
+Sometimes we need to inject other services to our test to use them.
+```ts title="calculator.service.spec.ts"
+export class CalculatorService {
+
+  constructor(private loggerService: LoggerService) {}
+
+  add(n1: number, n2: number) {
+    let result = n1 + n2;
+    this.loggerService.log('Add Operation is called!')
+    return result;
+  }
+  subtract(n1: number, n2: number) {
+    let result = n1 - n2;
+    this.loggerService.log('Subtract Operation is called!')
+    return result;
+  }
+}
+```
+```ts title="calculator.service.spec.ts"
+describe("CalculatorService", function () {
+  it("should add two numbers", function () {
+    const calculator = new CalculatorService();
+    let result = calculator.add(2, 2);
+    expect(result).toBe(4);
+  });
+  it("should subtract two numbers", function () {
+    let calculator = new CalculatorService();
+    let result = calculator.subtract(2, 2);
+    expect(result).toBe(0);
+  });
+});
+```
+🚩 We must not call the exact services in the test. (The other services!), like this:
+```ts
+describe('CalculatorService', function () {
+  it('should add two numbers', function () {
+    let loggerService = new LoggerService(); // ❌
+    const calculator = new CalculatorService(loggerService);
+    let result = calculator.add(2, 2);
+    expect(result).toBe(4);
+  });
+});
+```
+### Spy
+#### spyOn
+Based on previous assumption we should not call the services directly and we should use `spyOn` to create a fake version of our services:
+```ts title="calculator.service.spec.ts"
+describe('CalculatorService', function () {
+  it('should add two numbers', function () {
+    let loggerService = new LoggerService();
+    spyOn(loggerService, 'log').and.callThrough();
+
+    const calculator = new CalculatorService(loggerService);
+    let result = calculator.add(2, 2);
+    expect(result).toBe(4);
+    expect(loggerService.log).toHaveBeenCalledTimes(1);
+  });
+});
+```
+- If we want to call the main service and the method, we should use `.and.callThrough()`;
+
+#### createSpyObj
+In `spyOn` if we have a class and a constructor, the constructor will be executed but if we want to mock all the class or the service, we should use `createSpyObj`
+```ts title="calculator.service.spec.ts"
+describe('CalculatorService', function () {
+  it('should add two numbers', function () {
+    let mockLoggerService = jasmine.createSpyObj('LoggerService', ['log']);
+
+    const calculator = new CalculatorService(mockLoggerService);
+    let result = calculator.add(2, 2);
+    expect(result).toBe(4);
+    expect(mockLoggerService.log).toHaveBeenCalledTimes(1);
+  });
+});
+```
